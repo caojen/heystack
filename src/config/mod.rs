@@ -5,6 +5,7 @@ use ::std::process;
 use ::std::fs;
 use crate::diskio::read_write;
 
+#[derive(Debug)]
 pub struct Config {
   pub cpid: u32,          // the pid of **this** running function
   pub tpid: u32,          // the pid of the service pid
@@ -14,7 +15,7 @@ pub struct Config {
   pub config_port: u32,   // listen at for reload, stop
   pub service_port: u32,  // listen at for serve
 
-  pub volumn_name: String, // the physical filename
+  pub volume_name: String, // the physical filename
   pub index_name: String,  // the index filename
 
   pub max_index_in_mem: u64, // the maxinum memory(bytes) can be used to storing index
@@ -32,7 +33,7 @@ impl Config {
       config_port: 10001,
       service_port: 10002,
 
-      volumn_name: "heystack.volumn".to_string(),
+      volume_name: "heystack.volume".to_string(),
       index_name: "heystack.index".to_string(),
 
       max_index_in_mem: 1024 * 1024 * 20, // 20 Mb
@@ -52,7 +53,14 @@ impl Config {
     if let Ok(mut f) = fs::File::open(pid_file) {
       let pid: Option<u32> = read_write::read_struct_from_file(&mut f)?;
       match pid {
-        Some(pid) => self.tpid = pid,
+        Some(pid) => {
+          if self.test_pid_is_running(pid) {
+            self.tpid = pid;
+          } else {
+            fs::remove_file(&self.pid_file)?;
+            self.tpid = 0;
+          }
+        },
         None => self.tpid = 0
       }
     } else {
@@ -67,10 +75,28 @@ impl Config {
   fn create_files(&self) -> io::Result<()> {
     let filenames: Vec::<&str> = vec![
       &self.pid_file,
-      &self.volumn_name,
+      &self.volume_name,
       &self.index_name
     ];
 
+    for filename in filenames {
+      // test file if is exists
+      if let Err(_) = fs::File::open(filename) {
+        // that file isn't exists
+        // try to create it, but write nothing
+        fs::File::create(filename)?;
+      }
+    }
+
     Ok(())
+  }
+
+  fn test_pid_is_running(&self, pid: u32) -> bool {
+    true
+  }
+
+  // to test service is started
+  pub fn is_started(&self) -> bool {
+    self.tpid != 0
   }
 }

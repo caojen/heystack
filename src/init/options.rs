@@ -1,5 +1,6 @@
 use ::std::env;
 
+#[derive(Debug)]
 pub struct Options {
   pub help: bool,     // show help page
   pub start: bool,    // start service
@@ -38,11 +39,10 @@ pub fn get_options() -> Options {
       "h" | "help" => options.help = true,
       "s" | "start" => options.start = true,
       "r" | "reload" => options.reload = true,
-      "show" => options.reload = true,
-      "stop" => options.reload = true,
+      "show" => options.show = true,
+      "stop" => options.stop = true,
       _ => options.unknown.push(arg)
     }
   }
-
   options
 }
