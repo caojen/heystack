@@ -18,13 +18,13 @@ pub fn append_struct_to_file<T: Sized>(s: &T, f: &mut fs::File) -> io::Result<()
 }
 
 /// read **one** struct from file
-pub fn read_struct_from_file<T: Sized>(f: &mut fs::File) -> io::Result<T> {
+pub fn read_struct_from_file<T: Sized>(f: &mut fs::File) -> io::Result<Option<T>> {
   let size = mem::size_of::<T>();
   let mut vec = vec![0u8; size];
-  f.read(vec.as_mut_slice()).unwrap();
+  f.read(vec.as_mut_slice())?;
   let s = unsafe { struct_slice::slice_info_struct(&vec[..])? };
 
-  Ok(s)
+  Ok(Some(s))
 }
 
 /// OpenOption: write
@@ -40,7 +40,7 @@ pub fn modify_struct_in_file<T: Sized>(s: &T, f: &mut fs::File) -> io::Result<()
 mod tests {
   use super::*;
 
-  #[derive(Debug)]
+  #[derive(Debug, Clone, Copy)]
   struct TestStruct {
     pub a: u8,
     pub b: u8
@@ -64,8 +64,8 @@ mod tests {
 
     {
       let mut f = fs::File::open(filename)?;
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, a);
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(a));
     }
 
     {
@@ -75,18 +75,18 @@ mod tests {
 
     {
       let mut f = fs::File::open(filename)?;
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, a);
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, b);
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(a));
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(b));
     }
 
     {
       let mut f = fs::File::open(filename)?;
       let size = mem::size_of::<TestStruct>();
       f.seek(io::SeekFrom::Start(size as u64))?;
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, b);
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(b));
     }
 
     fs::remove_file(filename)?;
@@ -121,12 +121,12 @@ mod tests {
     }
     {
       let mut f = fs::File::open(filename)?;
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, a);
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, b);
-      let s: TestStruct = read_struct_from_file(&mut f)?;
-      assert_eq!(s, c);
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(a));
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(b));
+      let s: Option<TestStruct> = read_struct_from_file(&mut f)?;
+      assert_eq!(s, Some(c));
     }
     fs::remove_file(filename)?;
     Ok(())

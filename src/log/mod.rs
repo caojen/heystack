@@ -5,6 +5,17 @@ macro_rules! log {
       $(
         print!("{}", $x);
       )*
+    }
+  };
+}
+
+#[macro_export]
+macro_rules! logln {
+  ( $( $x:expr ),* ) => {
+    {
+      $(
+        print!("{}", $x);
+      )*
       println!("");
     }
   };
