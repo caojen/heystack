@@ -1,6 +1,9 @@
 mod diskio;
 mod init;
 
+#[macro_use]
+mod log;
+
 fn main() {
-    println!("Hello, world!");
+    let options = init::options::get_options();
 }
