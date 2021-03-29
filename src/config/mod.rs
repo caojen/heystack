@@ -99,4 +99,13 @@ impl Config {
   pub fn is_started(&self) -> bool {
     self.tpid != 0
   }
+
+  pub fn as_main_service(&mut self) -> io::Result<()> {
+    self.tpid = self.cpid;
+    crate::logln!("Write Pid: ", self.tpid);
+    let mut f = fs::OpenOptions::new()
+      .write(true)
+      .open(&self.pid_file)?;
+    read_write::modify_struct_in_file(&self.tpid, &mut f)
+  }
 }

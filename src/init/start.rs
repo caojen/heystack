@@ -19,11 +19,13 @@ pub fn deal_with_options(option: &options::Options) -> io::Result<()> {
     show_usage();
     Ok(())
   } else if option.start {
-    let config = Config::new()?;
+    let mut config = Config::new()?;
     if config.is_started() {
       crate::logln!("The service is started at pid ", config.tpid);
       panic!("");
     }
+
+    config.as_main_service()?;
 
     Ok(())
   } else if option.stop {
