@@ -2,6 +2,7 @@ use ::std::io;
 
 use super::options;
 use crate::config::Config;
+use crate::master;
 
 pub fn deal_with_options(option: &options::Options) -> io::Result<()> {
   if option.unknown.len() != 0 {
@@ -26,6 +27,7 @@ pub fn deal_with_options(option: &options::Options) -> io::Result<()> {
     }
 
     config.as_main_service()?;
+    master::service_start(config)?; // just move config into service_start
 
     Ok(())
   } else if option.stop {

@@ -21,10 +21,13 @@ pub fn append_struct_to_file<T: Sized>(s: &T, f: &mut fs::File) -> io::Result<()
 pub fn read_struct_from_file<T: Sized>(f: &mut fs::File) -> io::Result<Option<T>> {
   let size = mem::size_of::<T>();
   let mut vec = vec![0u8; size];
-  f.read(vec.as_mut_slice())?;
-  let s = unsafe { struct_slice::slice_info_struct(&vec[..])? };
-
-  Ok(Some(s))
+  match f.read(vec.as_mut_slice())? {
+    0 => Ok(None),
+    _ => {
+      let s = unsafe { struct_slice::slice_info_struct(&vec[..])? };
+      Ok(Some(s))
+    }
+  }
 }
 
 /// OpenOption: write
