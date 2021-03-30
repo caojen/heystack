@@ -1,6 +1,6 @@
 # A Simple Implementation for HeyStack in Rust
 
->> https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf
+> https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Beaver.pdf
 
 HeyStack is a fast file storage system raising by FB. The target of this rep is to implement the easiest part of HeyStack, including:
 
