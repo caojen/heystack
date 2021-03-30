@@ -4,16 +4,14 @@ use ::std::io;
 use ::std::fs;
 use ::std::sync::Mutex;
 
-use actix_web::{web, App, HttpServer, Responder};
+use actix_web::{web, App, HttpServer};
 
 use crate::diskio::read_write::read_struct_from_file;
 use crate::config::Config;
 use crate::storage::{
   IndexFile,
-  IndexFileItem,
-  PhysicalFileItem
+  IndexFileItem
 };
-use crate::storage;
 
 mod route;
 

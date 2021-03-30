@@ -155,7 +155,7 @@ impl IndexFile {
   }
 
   /// check index item exists
-  pub fn exists(&self, key: u32) -> (bool, Option<&IndexFileItem>) {
+  pub fn _exists(&self, key: u32) -> (bool, Option<&IndexFileItem>) {
     let mut r = false;
     let mut option = None;
     for index in &self.indexes {
