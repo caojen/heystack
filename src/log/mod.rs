@@ -3,7 +3,7 @@ macro_rules! log {
   ( $( $x:expr ),* ) => {
     {
       $(
-        print!("{}", $x);
+        print!("{:?}", $x);
       )*
     }
   };
@@ -15,6 +15,18 @@ macro_rules! logln {
     {
       $(
         print!("{}", $x);
+      )*
+      println!("");
+    }
+  };
+}
+
+#[macro_export]
+macro_rules! loglnf {
+  ( $( $x:expr ),* ) => {
+    {
+      $(
+        print!("{:?}", $x);
       )*
       println!("");
     }

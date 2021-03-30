@@ -64,6 +64,45 @@ impl PhysicalFileItem {
       offset
     })
   }
+
+  fn read_struct_from_file_without_data(f: &mut fs::File) -> io::Result<Option<Self>> {
+
+    let key: Option<u32> = read_write::read_struct_from_file(f)?;
+    let flag: Option<bool> = read_write::read_struct_from_file(f)?;
+    let size: Option<u64> = read_write::read_struct_from_file(f)?;
+
+    if key.is_none() || flag.is_none() || size.is_none() {
+      Ok(None)
+    } else {
+      f.seek(std::io::SeekFrom::Current(size.unwrap() as i64))?;
+      Ok(Some(PhysicalFileItem {
+        key: key.unwrap(),
+        flag: flag.unwrap(),
+        size: size.unwrap(),
+        data: vec![] // will not return data
+      }))
+    }
+  }
+
+  // build the entire index file based on f
+  // openoption: read
+  pub fn build_index_file(f: &mut fs::File) -> io::Result<Vec<IndexFileItem>> {
+    let mut r = vec![];
+    while let Some(item) = PhysicalFileItem::read_struct_from_file_without_data(f)? {
+      if item.flag {
+        let ifi = IndexFileItem {
+          key: item.key,
+          flag: true,
+          offset: f.stream_position()?,
+          size: item.size
+        };
+
+        crate::loglnf!(ifi);
+        r.push(ifi);
+      }
+    }
+    Ok(r)
+  }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -80,6 +119,11 @@ impl IndexFileItem {
   pub fn sync(&self, f: &mut fs::File) -> io::Result<()> {
     PhysicalFileItem::sync(self, f)?;
     Ok(())
+  }
+
+  /// check self.flag == true, if true, the file exists
+  pub fn file_exists(&self) -> bool {
+    self.flag
   }
 }
 
@@ -141,8 +185,7 @@ impl IndexFile {
   /// Ok(()), delete success
   /// Err(()), no such file
   pub fn delete_item(&mut self, key: u32) -> io::Result<()> {
-    crate::logln!("delete item ", key);
-
+    crate::logln!("delete item with key ", key);
     let physical_filename = self.physical_filename.clone();
     match self.get_mut(key) {
       None => io::Result::Err(io::Error::new(io::ErrorKind::Other, "No Such File")),
@@ -168,6 +211,7 @@ impl IndexFile {
         .open(physical_filename)?
     )?;
     self.indexes.push(r.clone());
+    crate::logln!("adding new data with new key ", r.key);
 
     // test if out of memory
     if self.indexes.len() > self.max {
@@ -177,6 +221,7 @@ impl IndexFile {
   }
 
   pub fn get_data(&mut self, key: u32) -> io::Result<Option<Vec<u8>>> {
+    crate::logln!("getting data with key ", key);
     let physical_filename = self.physical_filename.clone();
     match self.get_mut(key) {
       None => Ok(None),
@@ -191,15 +236,15 @@ impl IndexFile {
     }
   }
 
+  // store self.indexes into index_filename
   pub fn store_into_file(&self) -> io::Result<()> {
+    crate::logln!("storing indexes into file");
     let index_filename = self.index_filename.clone();
-    {
-      let mut f = fs::File::create(&index_filename)?;
-      for index in &self.indexes {
-        read_write::append_struct_to_file::<IndexFileItem>(&index, &mut f)?;
-      }
-      f.sync_all()?;
+    let mut f = fs::File::create(&index_filename)?;
+    for index in &self.indexes {
+      read_write::append_struct_to_file::<IndexFileItem>(&index, &mut f)?;
     }
+    f.sync_all()?;
 
     // try to load file
     // let mut f = fs::File::open(&index_filename)?;
@@ -208,6 +253,18 @@ impl IndexFile {
     //   v.push(item);
     // }
     // println!("{:?}", v);
+    Ok(())
+  }
+
+  // based on the given indexes, create index file and save it to that file
+  pub fn create_index_file_and_save(path: &str, indexes: Vec::<IndexFileItem>) -> io::Result<()> {
+    crate::logln!("create index file and save");
+    let mut f = fs::File::create(path)?;
+    for index in indexes {
+      read_write::append_struct_to_file::<IndexFileItem>(&index, &mut f)?;
+    }
+    f.sync_all()?;
+
     Ok(())
   }
 }

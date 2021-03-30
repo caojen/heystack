@@ -13,3 +13,18 @@ HeyStack is a fast file storage system raising by FB. The target of this rep is 
   + Can get/put/post/delete files using ``curl`` etc.
 
 Although there are many 3rd dependences in rust, we want to make this project simple and easy build.
+
+
+## Usage
+
+The project is based on ``rustc 1.51``
+
++ build: ``cargo build``
++ build-release: ``cargo build --release``
++ run test: ``cargo test``
+
++ Start Server: ``cargo run start``
++ Close Server:
+  + Send http.delete /sync to sync all index into disk
+  + Press Ctrl+c
+  + If you forget send Delete /sync, you can run ``cargo run reload`` to rebuild the index file from physical file, however, it may cause much time.

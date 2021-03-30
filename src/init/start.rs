@@ -33,7 +33,16 @@ pub fn deal_with_options(option: &options::Options) -> io::Result<()> {
   } else if option.stop {
     unimplemented!("stop is ub");
   } else if option.reload {
-    unimplemented!("reload is ub");
+    let mut config = Config::new()?;
+    if config.is_started() {
+      crate::logln!("The service is started at pid ", config.tpid);
+      crate::logln!("Cannot reload index file if service is already started");
+      crate::logln!("Try run 'stop' and retry");
+      panic!("");
+    }
+    config.reload_index_file()?;
+
+    Ok(())
   } else if option.show {
     let config = Config::new()?;
     crate::logln!("Started: ", config.is_started());

@@ -66,6 +66,9 @@ pub fn load_index_file(config: &Config) -> io::Result<Vec::<IndexFileItem>> {
 
   let mut index_count = 0 as u32;
   while let Some(item) = read_struct_from_file::<IndexFileItem>(&mut f)? {
+    if item.file_exists() == false {
+      continue
+    }
     println!("{} // loading index: {:?}", index_count, item);
     v.push(item);
     index_count += 1;

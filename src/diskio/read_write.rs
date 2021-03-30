@@ -24,7 +24,6 @@ pub fn read_struct_from_file<T: Sized>(f: &mut fs::File) -> io::Result<Option<T>
   match f.read(vec.as_mut_slice())? {
     0 => Ok(None),
     _ => {
-      // println!("read slice: {:?}", vec);
       let s = unsafe { struct_slice::slice_info_struct(&vec[..])? };
       Ok(Some(s))
     }

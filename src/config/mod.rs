@@ -106,6 +106,7 @@ impl Config {
     self.tpid != 0
   }
 
+  /// the preparation of main service
   pub fn as_main_service(&mut self) -> io::Result<()> {
     self.tpid = self.cpid;
     crate::logln!("Write Pid: ", self.tpid);
@@ -113,5 +114,18 @@ impl Config {
       .write(true)
       .open(&self.pid_file)?;
     read_write::modify_struct_in_file(&self.tpid, &mut f)
+  }
+
+  pub fn reload_index_file(&mut self) -> io::Result<()> {
+    let mut f = fs::File::open(&self.volume_name)?;
+    let r = crate::storage::PhysicalFileItem::build_index_file(&mut f)?;
+
+    // remove the current index file
+    fs::remove_file(&self.index_name)?;
+    // write to file
+
+    crate::storage::IndexFile::create_index_file_and_save(&self.index_name, r)?;
+
+    Ok(())
   }
 }

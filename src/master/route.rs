@@ -62,12 +62,35 @@ pub async fn upload_file(mut body: web::Payload, data: web::Data<AppState>) -> R
   }
 }
 
-#[delete("/file")]
-pub async fn delete_file() -> String {
-  format!("delete file")
+#[delete("/file/{key}")]
+pub async fn delete_file(data: web::Data<AppState>, web::Path(key): web::Path<u32>) -> impl Responder {
+  let mut index_file = data.index_file.lock().unwrap();
+  match index_file.delete_item(key) {
+    Err(_) => HttpResponse::InternalServerError()
+      .body("Something went wrong"),
+    _ => HttpResponse::Ok()
+      .body("File has deleted")
+  }
 }
 
-#[put("/file")]
-pub async fn update_file() -> String {
-  format!("update file")
+#[put("/file/{key}")]
+pub async fn update_file(data: web::Data<AppState>, web::Path(key): web::Path<u32>, mut body: web::Payload) -> Result<HttpResponse, Error> {
+  let mut index_file = data.index_file.lock().unwrap();
+  let mut bytes = web::BytesMut::new();
+  while let Some(item) = body.next().await {
+    let item = item?;
+    bytes.extend_from_slice(&item);
+  }
+  let d = &bytes[..];
+
+  // update = delete + add
+  match index_file.delete_item(key) {
+    Err(_) => Ok(HttpResponse::InternalServerError()
+        .body("Cannot delete original file")),
+    _ => match index_file.add_item(&d.to_vec()) {
+      Err(_) => Ok(HttpResponse::InternalServerError()
+        .body("Something went wrong")),
+      Ok(ifi) => Ok(HttpResponse::Ok().json(ifi))
+    }
+  }
 }
