@@ -36,7 +36,7 @@ impl Config {
       volume_name: "heystack.volume".to_string(),
       index_name: "heystack.index".to_string(),
 
-      max_index_in_mem: 1024 * 1024 * 20, // 20 Mb
+      max_index_in_mem: 1024 * 1024 * 1024, // 1024 Mb
     };
 
     c.get_pid_from_file()?;
@@ -92,7 +92,13 @@ impl Config {
   }
 
   fn test_pid_is_running(&self, pid: u32) -> bool {
-    true
+    let output = process::Command::new("/bin/bash")
+      .arg("-c")
+      .arg(format!("ps -elf | grep {:?}", pid))
+      .output()
+      .unwrap();
+    let stdout = ::std::str::from_utf8(&output.stdout).unwrap();
+    stdout.contains(&::std::env::args().collect::<Vec<String>>()[0])
   }
 
   // to test service is started

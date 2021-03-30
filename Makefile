@@ -1,3 +1,3 @@
 start:
-	rm heystack.*
+	rm -rf heystack.*
 	cargo run start
