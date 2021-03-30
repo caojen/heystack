@@ -67,3 +67,7 @@ The project is based on ``rustc 1.51``
 }
 ```
   + After old file deleted, that ``key`` will be removed and cannot be used anymore. You may need to store the new ``key`` and update your storage.
+
+## Testing
+Testing is being operating, please wait.
+Some basic operations on disk has been test, you can run ``cargo test`` for testing.
