@@ -43,11 +43,13 @@ The project is based on ``rustc 1.51``
   "flag": true
 }
 ```
+  + Note that posting file only store the data, the ``Content-Type`` will be ignored.
 
 + Get A File With Key
   + GET /file/{key}
   + After post a file, you can use ``key`` to get this file
   + Return the file as the response.body
+  + Note that the ``Content-Type`` will be ignored when posting a file, you need to store this file's ``Content-Type``
 
 + Delete A File With Key
   + DELETE /file/{key}
