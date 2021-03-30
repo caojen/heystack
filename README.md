@@ -28,3 +28,40 @@ The project is based on ``rustc 1.51``
   + Send http.delete /sync to sync all index into disk
   + Press Ctrl+c
   + If you forget send Delete /sync, you can run ``cargo run reload`` to rebuild the index file from physical file, however, it may cause much time.
+
+## API
+
++ Post A New File
+  + POST /file
+  + Request.body == file.content
+  + Return JSON like:
+```json
+{
+  "key": 12,
+  "size": 102,
+  "offset": 28377,
+  "flag": true
+}
+```
+
++ Get A File With Key
+  + GET /file/{key}
+  + After post a file, you can use ``key`` to get this file
+  + Return the file as the response.body
+
++ Delete A File With Key
+  + DELETE /file/{key}
+
++ Update A File With Key
+  + PUT /file/{key}
+  + Request.body == newfile.content
+  + Modify file will modify the key, so return JSON like:
+```json
+{
+  "key": 19,
+  "size": 102,
+  "offset": 28377,
+  "flag": true
+}
+```
+  + After old file deleted, that ``key`` will be removed and cannot be used anymore. You may need to store the new ``key`` and update your storage.
